@@ -1,0 +1,93 @@
+#########################################################################################################
+##	This is an example .gitignore file for Vivado, please treat it as an example as 
+##	it might not be complete. In addition, XAPP 1165 should be followed.
+#########################################################################################################
+#########
+#Exclude all
+#########
+
+/LHZ_AD9122_prj.cache/*
+/.cxl.ip/
+/LHZ_AD9122_prj.gen/*
+#!/LHZ_AD9122_prj/prj_lhz_uart_led.en/sources_1/bd/system/hdl/*.v
+/LHZ_AD9122_prj.hw/
+/LHZ_AD9122_prj.ip_user_files/
+/LHZ_AD9122_prj.sim/
+/LHZ_AD9122_prj.runs/
+/LHZ_AD9122_prj.srcs/sources_1/bd/system/hw_handoff/
+/LHZ_AD9122_prj.srcs/sources_1/bd/system/ipshared/
+/LHZ_AD9122_prj.srcs/sources_1/bd/system/sim/
+/LHZ_AD9122_prj.srcs/sources_1/bd/system/ui/
+/LHZ_AD9122_prj.srcs/sources_1/bd/system/ip/
+
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.cache/*
+# /.cxl.ip/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.gen/*
+# #!/hsem_s750_uart_pwm/hsem_s750_uart_pwm/hsem_s750_uart_pwm.en/sources_1/bd/system/hdl/*.v
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.hw/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.ip_user_files/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.sim/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.runs/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.srcs/sources_1/bd/system/hw_handoff/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.srcs/sources_1/bd/system/ipshared/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.srcs/sources_1/bd/system/sim/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.srcs/sources_1/bd/system/ui/
+# /hsem_s750_uart_pwm/hsem_s750_uart_pwm.srcs/sources_1/bd/system/ip/
+
+/sim/tb/work/*
+/sim/tb/wlf*
+*.xlsx
+*.xls
+/vitis/
+*.jou
+*.log
+*.xci
+*.tcl
+*.cpp
+*.c
+*.h
+*.ui
+
+*.bda
+*.str
+*.xml
+*.ini
+*.version
+!*.v
+!prj_lhz_uart_led\prj_lhz_uart_led.runs\impl_1\dds_sample_top.bit
+
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.gen/*
+#!/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.en/sources_1/bd/system/hdl/*.v
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.hw/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.ip_user_files/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.sim/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.runs/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.srcs/sources_1/bd/system/hw_handoff/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.srcs/sources_1/bd/system/ipshared/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.srcs/sources_1/bd/system/sim/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.srcs/sources_1/bd/system/ui/
+/Artix7_pwm_uart_brd/Artix7_pwm_uart_brd.srcs/sources_1/bd/system/ip/
+
+/K7_pwm_uart_brd/K7_pwm_uart_brd.gen/*
+#!/K7_pwm_uart_brd/K7_pwm_uart_brd/Artix7_pwm_uart_brd.en/sources_1/bd/system/hdl/*.v
+/K7_pwm_uart_brd/K7_pwm_uart_brd.hw/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.ip_user_files/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.sim/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.runs/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.srcs/sources_1/bd/system/hw_handoff/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.srcs/sources_1/bd/system/ipshared/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.srcs/sources_1/bd/system/sim/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.srcs/sources_1/bd/system/ui/
+/K7_pwm_uart_brd/K7_pwm_uart_brd.srcs/sources_1/bd/system/ip/
+
+#!/K7_pwm_uart_brd/K7_pwm_uart_brd/Artix7_pwm_uart_brd.en/sources_1/bd/system/hdl/*.v
+/SZOVS_UART_PWM/SZOVS_UART_PWM.gen/*
+/SZOVS_UART_PWM/SZOVS_UART_PWM.hw/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.ip_user_files/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.sim/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.runs/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.srcs/sources_1/bd/system/hw_handoff/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.srcs/sources_1/bd/system/ipshared/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.srcs/sources_1/bd/system/sim/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.srcs/sources_1/bd/system/ui/
+/SZOVS_UART_PWM/SZOVS_UART_PWM.srcs/sources_1/bd/system/ip/
