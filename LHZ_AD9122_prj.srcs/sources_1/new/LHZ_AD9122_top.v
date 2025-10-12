@@ -19,14 +19,22 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module LHZ_AD9122_top(
+module LHZ_AD9122_top
+# (
+    parameter _PAT_WIDTH = 32 ,   // 
+    parameter _NUM_CHANNELS = 3,        // 
+    parameter _NUM_SLOW_CH = 1, 
+    parameter CLK_FREQ = 50000000,               //
+    parameter UART_BPS = 115200  ,                //
+    parameter _DAC_WIDTH = 8      // 
+)(
     input sys_clk,
     input sys_rst_n,
     input ad9516_clk_p,
     input ad9516_clk_n,
     input uart_rxd,
-    output dac_data,
-    output led,
+    output [_DAC_WIDTH-1:0] dac_data,
+//    output led,
     output ad9748_sleep,
     output pwm_port,
     output pwm_diff_port_n,
@@ -34,6 +42,8 @@ module LHZ_AD9122_top(
     /* AD9122 */
     output      ad9122_freme_p,
     output      ad9122_freme_n,
+    output      ad9122_dci_p,
+    output      ad9122_dci_n,
     output      ad9122_fpga_clk_p,
     output      ad9122_fpga_clk_n,
     output [15:0] AD9122_data_p,
@@ -54,13 +64,18 @@ module LHZ_AD9122_top(
     input       ad9516_refmon,
 
     output      ad9748_cken,
-    output      lt3471_enn,
+//    output      lt3471_enn,
 
     output uart_txd
 );
 
 // 差分输入缓冲器（IBUFDS）
 wire ad9516_clk_ibuf;
+wire ad9122_dci;          // AD9122 DCI内部信号
+// 自动生成的内部信号
+wire pwm_diff_port;        // PWM差分信号内部驱动
+wire ad9122_freme;         // AD9122帧同步内部驱动
+wire ad9122_fpga_clk;      // AD9122时钟内部驱动
 IBUFDS #(
     .DIFF_TERM("FALSE"),    // 未使用差分终端
     .IBUF_LOW_PWR("TRUE")   // 低功耗模式
@@ -77,6 +92,12 @@ OBUFDS OBUFDS_pwm_diff (
     .OB(pwm_diff_port_n)    // 差分负输出
 );
 
+OBUFDS OBUFDS_ad9122_dci (
+    .I(ad9122_dci),      // 内部单端信号
+    .O(ad9122_dci_p),    // 差分正输出
+    .OB(ad9122_dci_n)    // 差分负输出
+);
+
 OBUFDS OBUFDS_ad9122_freme (
     .I(ad9122_freme),       // 内部单端信号
     .O(ad9122_freme_p),     // 差分正输出
@@ -89,10 +110,7 @@ OBUFDS OBUFDS_ad9122_fpga_clk (
     .OB(ad9122_fpga_clk_n)  // 差分负输出
 );
 
-// 自动生成的内部信号
-wire pwm_diff_port;        // PWM差分信号内部驱动
-wire ad9122_freme;         // AD9122帧同步内部驱动
-wire ad9122_fpga_clk;      // AD9122时钟内部驱动
+
 
 // 16位差分数据总线（OBUFDS）
 wire [15:0] AD9122_data;  // 内部数据总线
