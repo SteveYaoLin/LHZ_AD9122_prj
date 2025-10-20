@@ -115,3 +115,5 @@ set_property PACKAGE_PIN W18 [get_ports ad9516_clk_p]
 
 set_property PACKAGE_PIN H15 [get_ports sys_rst]
 set_property IOSTANDARD LVCMOS33 [get_ports sys_rst]
+
+set_property PACKAGE_PIN V5 [get_ports sys_rst_n]

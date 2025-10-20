@@ -330,6 +330,18 @@ uart_protocol_tx #(
                             //uart_tx_crc8
     /*output      */.uart_txd (uart_txd )
     );
+
+     // instantiate DUT
+  ad9516_spi_wr_config ad9516_config (
+    .clk_in(clk_50M),
+    .rst_n(rst_n),
+    .o_sclk(ad9156_spi_sclk),
+    .o_sda(ad9156_spi_sdo),
+    .o_cs_n(ad9156_spi_csn),
+    .o_adk_rst(),
+    .datain_valid(upon_config||pwm_out[4]),
+    .datain_ready()
+  );
 // 其他原有内部信号声明（根据需求补充）
 // wire [15:0] AD9122_data;
 // ... 其他内部逻辑信号
