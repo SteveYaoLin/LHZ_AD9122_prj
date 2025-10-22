@@ -192,15 +192,21 @@ generate
     end
 endgenerate
 
-assign ad9516_powerdown = 1'b1; // 保持AD9516不进入掉电模式
+assign ad9516_powerdown = pwm_out[5]; // 保持AD9516不进入掉电模式
 assign ad9748_cken = 1'b1; // 保持AD9748时钟使能
 
+wire upon_config;
+// reg pwm_out_upconf      ;    
+// reg pwm_out_upconf_d1   ;
+// reg pwm_out_upconf_pulse;
 always @(posedge clk_50M or negedge rst_n) begin
     if (!rst_n) begin
-        ad9516_upconf <= 1'b0;
-        ad9516_upconf_d1 <= 1'b0;
+        ad9516_upconf       <= 1'b0;
+        ad9516_upconf_d1    <= 1'b0;
         ad9516_upconf_pulse <= 1'b0;
-    end else begin
+    end 
+    else begin
+        ad9516_upconf <= pwm_out[4]; // 把pwm_out[4]或配置信号，启动AD9516配置信息
         ad9516_upconf_d1 <= ad9516_upconf;
         if (!ad9516_upconf_d1 && ad9516_upconf) begin
             ad9516_upconf_pulse <= 1'b1;// 上升沿触发的配置逻辑（用户可根据需求补充）
@@ -211,14 +217,33 @@ always @(posedge clk_50M or negedge rst_n) begin
     end
 end
 
+// wire slow_conf;
+// always @(posedge clk_50M or negedge rst_n) begin
+//     if (!rst_n) begin
+//         pwm_out_upconf <= 1'b0;
+//         pwm_out_upconf_d1 <= 1'b0;
+//         pwm_out_upconf_pulse <= 1'b0;
+//     end 
+//     else begin
+//         pwm_out_upconf <= pwm_out[4]; // 把pwm_out[4]或配置信号，启动AD9516配置信息
+//         pwm_out_upconf_d1 <= pwm_out_upconf;
+//         if (!pwm_out_upconf_d1 && pwm_out_upconf) begin
+//             pwm_out_upconf_pulse <= 1'b1;// 上升沿触发的配置逻辑（用户可根据需求补充）
+//         end
+//         else begin
+//             pwm_out_upconf_pulse <= 1'b0;
+//         end
+//     end
+// end
+
 reg [11:0] pwm_counter = 0;
-wire upon_config;
+
 
     always @(posedge clk_50M or negedge rst_n) begin
             if (!rst_n) begin
                 pwm_counter <= 12'd0;
             end
-            else if (pwm_counter == 12'd2024) begin
+            else if (pwm_counter == 12'd2047) begin
                 pwm_counter <= pwm_counter;
                 // pwm_100khz <= ~pwm_100khz;
             end
@@ -339,9 +364,10 @@ uart_protocol_tx #(
     .o_sda(ad9156_spi_sdo),
     .o_cs_n(ad9156_spi_csn),
     .o_adk_rst(),
-    .datain_valid(upon_config||pwm_out[4]),
+    .datain_valid(upon_config||ad9516_upconf_pulse),
     .datain_ready()
   );
+  
 // 其他原有内部信号声明（根据需求补充）
 // wire [15:0] AD9122_data;
 // ... 其他内部逻辑信号
@@ -352,5 +378,15 @@ uart_protocol_tx #(
 //   assign pwm_diff_port = ...;
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
-
+//  ila_0 u_ila_1(
+//  .clk	(clk_50M),
+//  .probe0	(rev_data3),
+//  .probe1	(rev_data0),
+//  .probe2	(rev_data1),
+//  .probe3	({recv_done,pwm_out[5:3]}),
+//  .probe4	(rev_data4),
+//  .probe5	(rev_data2),
+//  .probe6	(pack_cnt),
+//  .probe7	(response_data)
+//  );
 endmodule
