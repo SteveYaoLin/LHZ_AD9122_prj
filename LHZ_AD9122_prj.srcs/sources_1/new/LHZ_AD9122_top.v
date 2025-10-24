@@ -35,6 +35,7 @@ module LHZ_AD9122_top
     output [_DAC_WIDTH-1:0] dac_data,
 //    output led,
     output ad9748_sleep,
+    output pwm_slow_port,
     output pwm_port,
     output pwm_diff_port_n,
     output pwm_diff_port_p,
@@ -128,6 +129,10 @@ wire ad9122_freme;         // AD9122Ö¡Í¬²½ÄÚ²¿Çı¶¯
 wire ad9122_fpga_clk;      // AD9122Ê±ÖÓÄÚ²¿Çı¶¯
 reg [15:0] reset_cnt = 0;      // ¸´Î»¼ÆÊıÆ÷ÄÚ²¿ĞÅºÅ
 wire sys_rst_n ; // V5°å×ÓÃ»ÓĞÍâ²¿¸´Î»ĞÅºÅ£¬Ö±½ÓÀ­¸ß
+wire ad5616_finish; // AD5616ÅäÖÃÍê³ÉĞÅºÅ
+wire ad9516_lock; // AD9516Ëø¶¨ĞÅºÅ
+wire dac_500M_clk;
+wire dac_125M_clk;
 always @(posedge sys_clk ) begin
     if (reset_cnt == 16'hffff) begin
         reset_cnt <= 16'hffff;
@@ -152,14 +157,26 @@ assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5°å×ÓÃ»ÓĞÍâ²¿¸´Î»Ğ
   );
 assign rst_n = sys_rst_n & locked; // Active low reset signal
 
-IBUFDS #(
-    .DIFF_TERM("FALSE"),    // Î´Ê¹ÓÃ²î·ÖÖÕ¶Ë
-    .IBUF_LOW_PWR("TRUE")   // µÍ¹¦ºÄÄ£Ê½
-) IBUFDS_ad9516_clk (
-    .O(ad9516_clk_ibuf),    // »º³åÊä³ö
-    .I(ad9516_clk_p),       // ²î·ÖÕıÊäÈë
-    .IB(ad9516_clk_n)       // ²î·Ö¸ºÊäÈë
-);
+clk_wiz_1 u_dac
+(
+  // Clock out ports  
+  .clk_out1(dac_500M_clk),
+  .clk_out2(dac_125M_clk),
+  // Status and control signals               
+  .resetn(rst_n&&ad5616_finish), 
+  .locked(ad9516_lock),
+ // Clock in ports
+  .clk_in1_p(ad9516_clk_p),
+  .clk_in1_n(ad9516_clk_n)
+  );
+// IBUFDS #(
+//     .DIFF_TERM("FALSE"),    // Î´Ê¹ÓÃ²î·ÖÖÕ¶Ë
+//     .IBUF_LOW_PWR("TRUE")   // µÍ¹¦ºÄÄ£Ê½
+// ) IBUFDS_ad9516_clk (
+//     .O(ad9516_clk_ibuf),    // »º³åÊä³ö
+//     .I(ad9516_clk_p),       // ²î·ÖÕıÊäÈë
+//     .IB(ad9516_clk_n)       // ²î·Ö¸ºÊäÈë
+// );
 
 // ²î·ÖÊä³ö»º³åÆ÷£¨OBUFDS£©
 OBUFDS OBUFDS_pwm_diff (
@@ -200,6 +217,16 @@ generate
         );
     end
 endgenerate
+
+OBUF #(
+   .DRIVE(12),       // Çı¶¯µçÁ÷ÉèÎª12mA£¨¸ù¾İ¸ºÔØµ÷Õû£©
+   .IOSTANDARD("LVCMOS33"), // I/OµçÆ½±ê×¼
+   .SLEW("SLOW")     // Ñ¹°ÚÂÊÉèÎªSLOWÒÔ¼õÉÙ¸ßÆµÔë?????????????????
+) OBUF_slow_sig (
+   .O(pwm_slow_port),      // Êµ¼ÊÒı½Å£¨B35_L19_P?????????????????
+//    .I(pwm_100khz)     // µ¥¶ËĞÅºÅÊäÈë
+   .I(pwm_out[_NUM_CHANNELS])      // À´×ÔODDRµÄÊä?????????????????
+);
 
 // assign ad9516_powerdown = pwm_out[5]; // ±£³ÖAD9516²»½øÈëµôµçÄ£Ê½
 assign ad9516_powerdown = 1'b1; // ±£³ÖAD9516²»½øÈëµôµçÄ£Ê½
@@ -376,9 +403,9 @@ uart_protocol_tx #(
     .o_adk_rst(),
      .datain_valid(upon_config||ad9516_upconf_pulse),
 //    .datain_valid(upon_config),
-    .datain_ready()
+    .datain_ready(ad5616_finish)
   );
-  
+   assign ad9748_sleep = 1'b1; // Ê¹ÄÜAD9748¹¤×÷
 // ÆäËûÔ­ÓĞÄÚ²¿ĞÅºÅÉùÃ÷£¨¸ù¾İĞèÇó²¹³ä£©
 // wire [15:0] AD9122_data;
 // ... ÆäËûÄÚ²¿Âß¼­ĞÅºÅ
@@ -390,8 +417,8 @@ uart_protocol_tx #(
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
 breath_led u_breath_led(
-    .sys_clk         (clk_50M) ,      //
-    .sys_rst_n       (rst_n) ,    //
+    .sys_clk         (dac_125M_clk) ,      //
+    .sys_rst_n       (ad9516_lock) ,    //
     .led (led_breath )           //
 );
 wire test1 ;
