@@ -17,6 +17,7 @@ localparam BIT_PERIOD = 1_000_000_000 / UART_BPS; // ns per UART bit
 // DUT connected signals
 reg sys_clk;
 reg sys_rst_n;
+reg led_breath;
 reg ad9516_clk_p;
 reg ad9516_clk_n;
 reg uart_rxd;
@@ -58,7 +59,7 @@ LHZ_AD9122_top #(
     .UART_BPS(UART_BPS)
 ) uut (
     .sys_clk(sys_clk),
-    .sys_rst_n(sys_rst_n),
+    // .sys_rst_n(sys_rst_n),
     .ad9516_clk_p(ad9516_clk_p),
     .ad9516_clk_n(ad9516_clk_n),
     .uart_rxd(uart_rxd),
@@ -89,6 +90,7 @@ LHZ_AD9122_top #(
     .ad9516_lock_detect(ad9516_lock_detect),
     .ad9516_refmon(ad9516_refmon),
     .ad9748_cken(ad9748_cken),
+    .led_breath(led_breath), // not connected in TB
     .uart_txd(uart_txd)
 );
 

@@ -29,7 +29,6 @@ module LHZ_AD9122_top
     parameter _DAC_WIDTH = 8      // 
 )(
     input sys_clk,
-    input sys_rst_n,//V5 float
     input ad9516_clk_p,
     input ad9516_clk_n,
     input uart_rxd,
@@ -62,7 +61,7 @@ module LHZ_AD9122_top
     input       ad9516_status,
     input       ad9516_lock_detect,
     input       ad9516_refmon,
-
+    output      led_breath,
     output      ad9748_cken,
 //    output      lt3471_enn,
 
@@ -75,8 +74,7 @@ wire clk_100M_o;
 wire clk_50M_o;
 wire locked;
 wire resetn;
-wire rst_n = sys_rst_n & locked; // Active low reset signal
-
+wire rst_n ; 
 wire  [7:0] uart_data;
 wire uart_done;
 wire uart_get;
@@ -90,7 +88,7 @@ wire [7:0] dataD;
 wire [15:0] dataB;
 wire [15:0] dataC;
 wire led_enable;
-wire led_breath;
+// wire led_breath;
 wire [(_NUM_CHANNELS + _NUM_SLOW_CH -1):0] pwm_out;
 wire [_NUM_CHANNELS - 1:0] pwm_busy;
 wire [_NUM_CHANNELS - 1:0] pwm_valid;
@@ -128,7 +126,17 @@ wire ad9122_dci;          // AD9122 DCI内部信号
 wire pwm_diff_port;        // PWM差分信号内部驱动
 wire ad9122_freme;         // AD9122帧同步内部驱动
 wire ad9122_fpga_clk;      // AD9122时钟内部驱动
-
+reg [15:0] reset_cnt = 0;      // 复位计数器内部信号
+wire sys_rst_n ; // V5板子没有外部复位信号，直接拉高
+always @(posedge sys_clk ) begin
+    if (reset_cnt == 16'hffff) begin
+        reset_cnt <= 16'hffff;
+    end
+    else begin
+        reset_cnt <= reset_cnt + 1'b1;// led <= led_enable ? led_breath : 1'b0;
+    end
+end
+assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5板子没有外部复位信号，直接拉高
   clk_wiz_0 u_mmcm
   (
   // Clock out ports  
@@ -142,6 +150,7 @@ wire ad9122_fpga_clk;      // AD9122时钟内部驱动
  // Clock in ports
   .clk_in1(sys_clk)
   );
+assign rst_n = sys_rst_n & locked; // Active low reset signal
 
 IBUFDS #(
     .DIFF_TERM("FALSE"),    // 未使用差分终端
@@ -192,7 +201,8 @@ generate
     end
 endgenerate
 
-assign ad9516_powerdown = pwm_out[5]; // 保持AD9516不进入掉电模式
+// assign ad9516_powerdown = pwm_out[5]; // 保持AD9516不进入掉电模式
+assign ad9516_powerdown = 1'b1; // 保持AD9516不进入掉电模式
 assign ad9748_cken = 1'b1; // 保持AD9748时钟使能
 
 wire upon_config;
@@ -364,7 +374,8 @@ uart_protocol_tx #(
     .o_sda(ad9156_spi_sdo),
     .o_cs_n(ad9156_spi_csn),
     .o_adk_rst(),
-    .datain_valid(upon_config||ad9516_upconf_pulse),
+     .datain_valid(upon_config||ad9516_upconf_pulse),
+//    .datain_valid(upon_config),
     .datain_ready()
   );
   
@@ -378,15 +389,27 @@ uart_protocol_tx #(
 //   assign pwm_diff_port = ...;
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
-//  ila_0 u_ila_1(
-//  .clk	(clk_50M),
-//  .probe0	(rev_data3),
-//  .probe1	(rev_data0),
-//  .probe2	(rev_data1),
-//  .probe3	({recv_done,pwm_out[5:3]}),
-//  .probe4	(rev_data4),
-//  .probe5	(rev_data2),
-//  .probe6	(pack_cnt),
-//  .probe7	(response_data)
-//  );
+breath_led u_breath_led(
+    .sys_clk         (clk_50M) ,      //
+    .sys_rst_n       (rst_n) ,    //
+    .led (led_breath )           //
+);
+wire test1 ;
+wire test2 ;
+wire test3 ;
+wire test4 ;
+assign test1 = pwm_out[3];
+assign test2 = pwm_out[4];
+assign test3 = pwm_out[5];
+  ila_0 u_ila_1(
+  .clk	(clk_50M),
+  .probe0	(rev_data3),
+  .probe1	(rev_data0),
+  .probe2	(rev_data1),
+  .probe3	({upon_config,ad9516_upconf_pulse,test2,test3}),
+  .probe4	(rev_data4),
+  .probe5	(rev_data2),
+  .probe6	(pack_cnt),
+  .probe7	({test1,ad9156_spi_sclk,ad9156_spi_sdo,ad9156_spi_csn,uart_txd,uart_rxd,pack_done,recv_done})
+  );
 endmodule

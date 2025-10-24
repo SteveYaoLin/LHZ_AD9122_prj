@@ -117,3 +117,6 @@ set_property PACKAGE_PIN H15 [get_ports sys_rst]
 set_property IOSTANDARD LVCMOS33 [get_ports sys_rst]
 
 set_property PACKAGE_PIN V5 [get_ports sys_rst_n]
+
+set_property PACKAGE_PIN J16 [get_ports led_breath]
+set_property IOSTANDARD LVCMOS33 [get_ports led_breath]
