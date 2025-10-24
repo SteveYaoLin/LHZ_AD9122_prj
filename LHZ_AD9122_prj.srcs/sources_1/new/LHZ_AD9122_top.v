@@ -29,8 +29,8 @@ module LHZ_AD9122_top
     parameter _DAC_WIDTH = 8      // 
 )(
     input sys_clk,
-    input ad9516_clk_p,
-    input ad9516_clk_n,
+    // input ad9516_clk_p,
+    // input ad9516_clk_n,
     input uart_rxd,
     output [_DAC_WIDTH-1:0] dac_data,
 //    output led,
@@ -71,8 +71,8 @@ module LHZ_AD9122_top
 // First, declare the necessary signals
 wire clk_50M;
 wire clk_100M;
-wire clk_100M_o;
-wire clk_50M_o;
+wire clk_125M;
+wire clk_500M;
 wire locked;
 wire resetn;
 wire rst_n ; 
@@ -142,13 +142,13 @@ always @(posedge sys_clk ) begin
     end
 end
 assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5°å×ÓÃ»ÓÐÍâ²¿¸´Î»ÐÅºÅ£¬Ö±½ÓÀ­¸ß
-  clk_wiz_0 u_mmcm
+  clk_wiz_1 u_mmcm
   (
   // Clock out ports  
   .clk_out1(clk_50M),
   .clk_out2(clk_100M),
-  .clk_out3(clk_100M_o),
-  .clk_out4(clk_50M_o),
+  .clk_out3(clk_125M),
+  .clk_out4(clk_500M),
   // Status and control signals               
   .resetn(sys_rst_n), 
   .locked(locked),
@@ -157,18 +157,18 @@ assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5°å×ÓÃ»ÓÐÍâ²¿¸´Î»Ð
   );
 assign rst_n = sys_rst_n & locked; // Active low reset signal
 
-clk_wiz_1 u_dac
-(
-  // Clock out ports  
-  .clk_out1(dac_500M_clk),
-  .clk_out2(dac_125M_clk),
-  // Status and control signals               
-  .resetn(rst_n&&ad5616_finish), 
-  .locked(ad9516_lock),
- // Clock in ports
-  .clk_in1_p(ad9516_clk_p),
-  .clk_in1_n(ad9516_clk_n)
-  );
+// clk_wiz_1 u_dac
+// (
+//   // Clock out ports  
+//   .clk_out1(dac_500M_clk),
+//   .clk_out2(dac_125M_clk),
+//   // Status and control signals               
+//   .resetn(rst_n&&ad5616_finish), 
+//   .locked(ad9516_lock),
+//  // Clock in ports
+//   .clk_in1_p(ad9122_fpga_clk_p),
+//   .clk_in1_n(ad9122_fpga_clk_n)
+//   );
 // IBUFDS #(
 //     .DIFF_TERM("FALSE"),    // Î´Ê¹ÓÃ²î·ÖÖÕ¶Ë
 //     .IBUF_LOW_PWR("TRUE")   // µÍ¹¦ºÄÄ£Ê½
@@ -198,7 +198,7 @@ OBUFDS OBUFDS_ad9122_freme (
 );
 
 OBUFDS OBUFDS_ad9122_fpga_clk (
-    .I(ad9122_fpga_clk),    // ÄÚ²¿µ¥¶ËÐÅºÅ
+    .I(clk_125M),    // ÄÚ²¿µ¥¶ËÐÅºÅ
     .O(ad9122_fpga_clk_p),  // ²î·ÖÕýÊä³ö
     .OB(ad9122_fpga_clk_n)  // ²î·Ö¸ºÊä³ö
 );
@@ -417,8 +417,8 @@ uart_protocol_tx #(
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
 breath_led u_breath_led(
-    .sys_clk         (dac_125M_clk) ,      //
-    .sys_rst_n       (ad9516_lock) ,    //
+    .sys_clk         (clk_125M) ,      //
+    .sys_rst_n       (rst_n) ,    //
     .led (led_breath )           //
 );
 wire test1 ;
@@ -428,15 +428,15 @@ wire test4 ;
 assign test1 = pwm_out[3];
 assign test2 = pwm_out[4];
 assign test3 = pwm_out[5];
-  ila_0 u_ila_1(
-  .clk	(clk_50M),
-  .probe0	(rev_data3),
-  .probe1	(rev_data0),
-  .probe2	(rev_data1),
-  .probe3	({upon_config,ad9516_upconf_pulse,test2,test3}),
-  .probe4	(rev_data4),
-  .probe5	(rev_data2),
-  .probe6	(pack_cnt),
-  .probe7	({test1,ad9156_spi_sclk,ad9156_spi_sdo,ad9156_spi_csn,uart_txd,uart_rxd,pack_done,recv_done})
-  );
+//  ila_0 u_ila_1(
+//  .clk	(clk_50M),
+//  .probe0	(rev_data3),
+//  .probe1	(rev_data0),
+//  .probe2	(rev_data1),
+//  .probe3	({upon_config,ad9516_upconf_pulse,test2,test3}),
+//  .probe4	(rev_data4),
+//  .probe5	(rev_data2),
+//  .probe6	(pack_cnt),
+//  .probe7	({test1,ad9156_spi_sclk,ad9156_spi_sdo,ad9156_spi_csn,uart_txd,uart_rxd,pack_done,recv_done})
+//  );
 endmodule
