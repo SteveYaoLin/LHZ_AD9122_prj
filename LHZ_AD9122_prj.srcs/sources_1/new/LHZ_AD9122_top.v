@@ -120,19 +120,24 @@ wire [7:0] response_data; // Response data output
 reg ad9516_upconf;
 reg ad9516_upconf_d1;
 reg ad9516_upconf_pulse;
-// ²î·ÖÊäÈë»º³åÆ÷£¨IBUFDS£©
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë»ºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IBUFDSï¿½ï¿½
 wire ad9516_clk_ibuf;
-wire ad9122_dci;          // AD9122 DCIÄÚ²¿ÐÅºÅ
-// ×Ô¶¯Éú³ÉµÄÄÚ²¿ÐÅºÅ
-wire pwm_diff_port;        // PWM²î·ÖÐÅºÅÄÚ²¿Çý¶¯
-wire ad9122_freme;         // AD9122Ö¡Í¬²½ÄÚ²¿Çý¶¯
-wire ad9122_fpga_clk;      // AD9122Ê±ÖÓÄÚ²¿Çý¶¯
-reg [15:0] reset_cnt = 0;      // ¸´Î»¼ÆÊýÆ÷ÄÚ²¿ÐÅºÅ
-wire sys_rst_n ; // V5°å×ÓÃ»ÓÐÍâ²¿¸´Î»ÐÅºÅ£¬Ö±½ÓÀ­¸ß
-wire ad5616_finish; // AD5616ÅäÖÃÍê³ÉÐÅºÅ
-wire ad9516_lock; // AD9516Ëø¶¨ÐÅºÅ
+wire ad9122_dci;          // AD9122 DCIï¿½Ú²ï¿½ï¿½Åºï¿½
+// ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½Ú²ï¿½ï¿½Åºï¿½
+wire pwm_diff_port;        // PWMï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+wire ad9122_freme;         // AD9122Ö¡Í¬ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+wire ad9122_fpga_clk;      // AD9122Ê±ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+reg [15:0] reset_cnt = 0;      // ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½Åºï¿½
+wire sys_rst_n ; // V5ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½â²¿ï¿½ï¿½Î»ï¿½ÅºÅ£ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+wire ad9516_finish; // AD5616ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+wire ad9516_lock; // AD9516ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
 wire dac_500M_clk;
 wire dac_125M_clk;
+wire AD9122_sda_dir;
+//wire AD9122_sda_dir;
+// wire AD9122_sen_n;
+wire ad9122_finish;
+reg   ad9122_upconf_pulse;
 always @(posedge sys_clk ) begin
     if (reset_cnt == 16'hffff) begin
         reset_cnt <= 16'hffff;
@@ -141,7 +146,7 @@ always @(posedge sys_clk ) begin
         reset_cnt <= reset_cnt + 1'b1;// led <= led_enable ? led_breath : 1'b0;
     end
 end
-assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5°å×ÓÃ»ÓÐÍâ²¿¸´Î»ÐÅºÅ£¬Ö±½ÓÀ­¸ß
+assign sys_rst_n = (reset_cnt == 16'hffff) ? 1'b1 : 1'b0; // V5ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½â²¿ï¿½ï¿½Î»ï¿½ÅºÅ£ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   clk_wiz_1 u_mmcm
   (
   // Clock out ports  
@@ -163,74 +168,74 @@ assign rst_n = sys_rst_n & locked; // Active low reset signal
 //   .clk_out1(dac_500M_clk),
 //   .clk_out2(dac_125M_clk),
 //   // Status and control signals               
-//   .resetn(rst_n&&ad5616_finish), 
+//   .resetn(rst_n&&ad9516_finish), 
 //   .locked(ad9516_lock),
 //  // Clock in ports
 //   .clk_in1_p(ad9122_fpga_clk_p),
 //   .clk_in1_n(ad9122_fpga_clk_n)
 //   );
 // IBUFDS #(
-//     .DIFF_TERM("FALSE"),    // Î´Ê¹ÓÃ²î·ÖÖÕ¶Ë
-//     .IBUF_LOW_PWR("TRUE")   // µÍ¹¦ºÄÄ£Ê½
+//     .DIFF_TERM("FALSE"),    // Î´Ê¹ï¿½Ã²ï¿½ï¿½ï¿½Õ¶ï¿½
+//     .IBUF_LOW_PWR("TRUE")   // ï¿½Í¹ï¿½ï¿½ï¿½Ä£Ê½
 // ) IBUFDS_ad9516_clk (
-//     .O(ad9516_clk_ibuf),    // »º³åÊä³ö
-//     .I(ad9516_clk_p),       // ²î·ÖÕýÊäÈë
-//     .IB(ad9516_clk_n)       // ²î·Ö¸ºÊäÈë
+//     .O(ad9516_clk_ibuf),    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//     .I(ad9516_clk_p),       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//     .IB(ad9516_clk_n)       // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½
 // );
 
-// ²î·ÖÊä³ö»º³åÆ÷£¨OBUFDS£©
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½OBUFDSï¿½ï¿½
 OBUFDS OBUFDS_pwm_diff (
-    .I(pwm_diff_port),      // ÄÚ²¿µ¥¶ËÐÅºÅ
-    .O(pwm_diff_port_p),    // ²î·ÖÕýÊä³ö
-    .OB(pwm_diff_port_n)    // ²î·Ö¸ºÊä³ö
+    .I(pwm_diff_port),      // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+    .O(pwm_diff_port_p),    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    .OB(pwm_diff_port_n)    // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
 );
 
 OBUFDS OBUFDS_ad9122_dci (
-    .I(ad9122_dci),      // ÄÚ²¿µ¥¶ËÐÅºÅ
-    .O(ad9122_dci_p),    // ²î·ÖÕýÊä³ö
-    .OB(ad9122_dci_n)    // ²î·Ö¸ºÊä³ö
+    .I(ad9122_dci),      // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+    .O(ad9122_dci_p),    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    .OB(ad9122_dci_n)    // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
 );
 
 OBUFDS OBUFDS_ad9122_freme (
-    .I(ad9122_freme),       // ÄÚ²¿µ¥¶ËÐÅºÅ
-    .O(ad9122_freme_p),     // ²î·ÖÕýÊä³ö
-    .OB(ad9122_freme_n)     // ²î·Ö¸ºÊä³ö
+    .I(ad9122_freme),       // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+    .O(ad9122_freme_p),     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    .OB(ad9122_freme_n)     // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
 );
 
 OBUFDS OBUFDS_ad9122_fpga_clk (
-    .I(clk_125M),    // ÄÚ²¿µ¥¶ËÐÅºÅ
-    .O(ad9122_fpga_clk_p),  // ²î·ÖÕýÊä³ö
-    .OB(ad9122_fpga_clk_n)  // ²î·Ö¸ºÊä³ö
+    .I(clk_125M),    // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+    .O(ad9122_fpga_clk_p),  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    .OB(ad9122_fpga_clk_n)  // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
 );
 
 
 
-// 16Î»²î·ÖÊý¾Ý×ÜÏß£¨OBUFDS£©
-wire [15:0] AD9122_data;  // ÄÚ²¿Êý¾Ý×ÜÏß
+// 16Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½OBUFDSï¿½ï¿½
+wire [15:0] AD9122_data;  // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 genvar i;
 generate
     for (i = 0; i < 16; i = i + 1) begin : AD9122_DATA_BUS
         OBUFDS OBUFDS_ad9122_data (
-            .I(AD9122_data[i]),  // ÄÚ²¿µ¥¶ËÊý¾Ý
-            .O(AD9122_data_p[i]),    // ²î·ÖÕýÊä³ö
-            .OB(AD9122_data_n[i])    // ²î·Ö¸ºÊä³ö
+            .I(AD9122_data[i]),  // ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            .O(AD9122_data_p[i]),    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            .OB(AD9122_data_n[i])    // ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½
         );
     end
 endgenerate
 
 OBUF #(
-   .DRIVE(12),       // Çý¶¯µçÁ÷ÉèÎª12mA£¨¸ù¾Ý¸ºÔØµ÷Õû£©
-   .IOSTANDARD("LVCMOS33"), // I/OµçÆ½±ê×¼
-   .SLEW("SLOW")     // Ñ¹°ÚÂÊÉèÎªSLOWÒÔ¼õÉÙ¸ßÆµÔë?????????????????
+   .DRIVE(12),       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª12mAï¿½ï¿½ï¿½ï¿½ï¿½Ý¸ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
+   .IOSTANDARD("LVCMOS33"), // I/Oï¿½ï¿½Æ½ï¿½ï¿½×¼
+   .SLEW("SLOW")     // Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªSLOWï¿½Ô¼ï¿½ï¿½Ù¸ï¿½Æµï¿½ï¿½?????????????????
 ) OBUF_slow_sig (
-   .O(pwm_slow_port),      // Êµ¼ÊÒý½Å£¨B35_L19_P?????????????????
-//    .I(pwm_100khz)     // µ¥¶ËÐÅºÅÊäÈë
-   .I(pwm_out[_NUM_CHANNELS])      // À´×ÔODDRµÄÊä?????????????????
+   .O(pwm_slow_port),      // Êµï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½B35_L19_P?????????????????
+//    .I(pwm_100khz)     // ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½
+   .I(pwm_out[_NUM_CHANNELS])      // ï¿½ï¿½ï¿½ï¿½ODDRï¿½ï¿½ï¿½ï¿½?????????????????
 );
 
-// assign ad9516_powerdown = pwm_out[5]; // ±£³ÖAD9516²»½øÈëµôµçÄ£Ê½
-assign ad9516_powerdown = 1'b1; // ±£³ÖAD9516²»½øÈëµôµçÄ£Ê½
-assign ad9748_cken = 1'b1; // ±£³ÖAD9748Ê±ÖÓÊ¹ÄÜ
+// assign ad9516_powerdown = pwm_out[5]; // ï¿½ï¿½ï¿½ï¿½AD9516ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+assign ad9516_powerdown = 1'b1; // ï¿½ï¿½ï¿½ï¿½AD9516ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½
+assign ad9748_cken = 1'b1; // ï¿½ï¿½ï¿½ï¿½AD9748Ê±ï¿½ï¿½Ê¹ï¿½ï¿½
 
 wire upon_config;
 // reg pwm_out_upconf      ;    
@@ -243,10 +248,10 @@ always @(posedge clk_50M or negedge rst_n) begin
         ad9516_upconf_pulse <= 1'b0;
     end 
     else begin
-        ad9516_upconf <= pwm_out[4]; // °Ñpwm_out[4]»òÅäÖÃÐÅºÅ£¬Æô¶¯AD9516ÅäÖÃÐÅÏ¢
+        ad9516_upconf <= pwm_out[4]; // ï¿½ï¿½pwm_out[4]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½AD9516ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
         ad9516_upconf_d1 <= ad9516_upconf;
         if (!ad9516_upconf_d1 && ad9516_upconf) begin
-            ad9516_upconf_pulse <= 1'b1;// ÉÏÉýÑØ´¥·¢µÄÅäÖÃÂß¼­£¨ÓÃ»§¿É¸ù¾ÝÐèÇó²¹³ä£©
+            ad9516_upconf_pulse <= 1'b1;// ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó²¹³ä£©
         end
         else begin
             ad9516_upconf_pulse <= 1'b0;
@@ -262,10 +267,10 @@ end
 //         pwm_out_upconf_pulse <= 1'b0;
 //     end 
 //     else begin
-//         pwm_out_upconf <= pwm_out[4]; // °Ñpwm_out[4]»òÅäÖÃÐÅºÅ£¬Æô¶¯AD9516ÅäÖÃÐÅÏ¢
+//         pwm_out_upconf <= pwm_out[4]; // ï¿½ï¿½pwm_out[4]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½AD9516ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 //         pwm_out_upconf_d1 <= pwm_out_upconf;
 //         if (!pwm_out_upconf_d1 && pwm_out_upconf) begin
-//             pwm_out_upconf_pulse <= 1'b1;// ÉÏÉýÑØ´¥·¢µÄÅäÖÃÂß¼­£¨ÓÃ»§¿É¸ù¾ÝÐèÇó²¹³ä£©
+//             pwm_out_upconf_pulse <= 1'b1;// ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó²¹³ä£©
 //         end
 //         else begin
 //             pwm_out_upconf_pulse <= 1'b0;
@@ -336,10 +341,10 @@ uart_reg_mapper # (
     ._NUM_CHANNELS(_NUM_CHANNELS),
     ._NUM_SLOW_CH(_NUM_SLOW_CH)
 )u_uart_reg_mapper(
-   /*input wire  */.clk_50M    (clk_50M) ,      // 50MHzÊ±ÖÓÊäÈë
-   /*input wire  */.clk_100M   (clk_100M) ,     // 100MHzÊ±ÖÓÊäÈë
+   /*input wire  */.clk_50M    (clk_50M) ,      // 50MHzÊ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+   /*input wire  */.clk_100M   (clk_100M) ,     // 100MHzÊ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
    /*input wire  */.rst_n      (rst_n  ) ,
-   // UART½Ó¿ÚÐÅºÅ
+   // UARTï¿½Ó¿ï¿½ï¿½Åºï¿½
    /*input [7:0] */  .func_reg    (rev_data0   ) ,
    /*input [7:0] */  .rev_data1   (rev_data1   ) ,
    /*input [7:0] */  .rev_data2   (rev_data2   ) ,
@@ -352,9 +357,9 @@ uart_reg_mapper # (
    /*input [7:0] */  .rev_data9   (rev_data9   ) ,
    /*input [7:0] */  .rev_data10  (rev_data10  ) ,
 //    /*input [7:0] */  .rev_data11  (rev_data11  ) ,
-   /*input       */  .pack_done   (pack_done   ) ,     // Êý¾Ý°ü½ÓÊÕÍê³É±ê???????????
+   /*input       */  .pack_done   (pack_done   ) ,     // ï¿½ï¿½ï¿½Ý°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É±ï¿½???????????
    
-   // PWMÍ¨µÀ½Ó¿Ú
+   // PWMÍ¨ï¿½ï¿½ï¿½Ó¿ï¿½
    /*output [7:0]  .hs_ctrl_sta   (hs_ctrl_sta  ), */
    /*output [7:0]  .duty_num      (duty_num     ), */
    /*output [15:0] .pulse_dessert (pulse_dessert), */
@@ -364,9 +369,9 @@ uart_reg_mapper # (
    /*output [7:0]  .hs_pwm_ch     (hs_pwm_ch    ), */
    /*output [7:0]  .ls_pwm_ch     (ls_pwm_ch    )  */          
    /*output wire [_DAC_WIDTH - 1:0 ]*/.dac_data (dac_data ),         
-   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_out  (pwm_out  ),    // PWMÊä³ö×ÜÏß
-   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_busy (pwm_busy ),   // Ã¦×´Ì¬???Ïß
-   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_valid(pwm_valid)   // ÓÐÐ§±êÖ¾×ÜÏß
+   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_out  (pwm_out  ),    // PWMï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_busy (pwm_busy ),   // Ã¦×´Ì¬???ï¿½ï¿½
+   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_valid(pwm_valid)   // ï¿½ï¿½Ð§ï¿½ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½
 );
 uart_protocol_tx #(
     .CLK_FREQ(CLK_FREQ),
@@ -401,26 +406,70 @@ uart_protocol_tx #(
     .o_sda(ad9156_spi_sdo),
     .o_cs_n(ad9156_spi_csn),
     .o_adk_rst(),
-     .datain_valid(upon_config||ad9516_upconf_pulse),
-//    .datain_valid(upon_config),
-    .datain_ready(ad5616_finish)
+    //  .datain_valid(upon_config||ad9516_upconf_pulse),
+   .datain_valid(upon_config),
+    .datain_ready(),
+    .ad9516_conf_finish(ad9516_finish)
   );
-   assign ad9748_sleep = 1'b1; // Ê¹ÄÜAD9748¹¤×÷
-// ÆäËûÔ­ÓÐÄÚ²¿ÐÅºÅÉùÃ÷£¨¸ù¾ÝÐèÇó²¹³ä£©
-// wire [15:0] AD9122_data;
-// ... ÆäËûÄÚ²¿Âß¼­ÐÅºÅ
+  // helpers for edge detect and pulse generation
+reg ad9616_finish_d1; // delayed version of ad9516_finish
+reg [1:0] ad9122_pulse_cnt; // remaining cycles for pulse (2..0)
+/*
+// Generate ad9122_upconf_pulse when ad9516_finish rises: pulse for exactly 2 clk_50M cycles
+always @(posedge clk_50M or negedge rst_n) begin
+    if (!rst_n) begin
+        ad9616_finish_d1 <= 1'b0;
+        ad9122_pulse_cnt <= 2'd0;
+        ad9122_upconf_pulse <= 1'b0;
+    end else begin
+        ad9616_finish_d1 <= ad9516_finish;
+        // detect rising edge
+        if (ad9516_finish && !ad9616_finish_d1) begin
+            ad9122_pulse_cnt <= 2'd2; // start counter (2 cycles)
+            ad9122_upconf_pulse <= 1'b1;
+        end else if (ad9122_pulse_cnt != 2'd0) begin
+            // decrement counter each clk_50M cycle
+            ad9122_pulse_cnt <= ad9122_pulse_cnt - 1'b1;
+            // Keep pulse high while counter > 1
+            ad9122_upconf_pulse <= (ad9122_pulse_cnt > 2'd1) ? 1'b1 : 1'b0;
+        end else begin
+            ad9122_upconf_pulse <= 1'b0;
+        end
+    end
+end*/
+// config ad9122
+ad9122_spi_wr_config ad9122_config(
+    /*input  */.clk_in          (clk_50M),
+    /*input  */.rst_n           (rst_n),
+    /*output */.o_sclk          (ad9122_spi_sclk),
+    /*output */.o_sda           (ad9122_spi_sdo),
+    /*output */.o_sda_dir       (AD9122_sda_dir),
+    /*output */.o_sen_n         (ad9122_spi_csn),
+    /*output */.o_reset         (),
+    /*input  */.io_sda          (ad9122_spi_sdio),
+    // /*input  */.datain_valid    (ad9516_finish ),
+    /*input  */.datain_valid    (ad9516_upconf_pulse ),
+    /*output */.datain_ready    (ad9122_finish) 
+                        ); 
 
-// Ä£¿éÊµ¼Ê¹¦ÄÜÂß¼­£¨´Ë´¦ÐèÓÃ»§²¹³ä£©
-// ×¢Òâ£ºËùÓÐ²î·Ö¶Ë¿ÚÏÖÔÚÍ¨¹ýÄÚ²¿µ¥¶ËÐÅºÅÇý¶¯
-// ÀýÈç£º
+   assign ad9748_sleep = 1'b1; // Ê¹ï¿½ï¿½AD9748ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½Ú²ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó²¹³ä£©
+// wire [15:0] AD9122_data;
+// ... ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ß¼ï¿½ï¿½Åºï¿½
+
+// Ä£ï¿½ï¿½Êµï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Ë´ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ä£©
+// ×¢ï¿½â£ºï¿½ï¿½ï¿½Ð²ï¿½Ö¶Ë¿ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ç£º
 //   assign pwm_diff_port = ...;
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
+wire led;
 breath_led u_breath_led(
     .sys_clk         (clk_125M) ,      //
     .sys_rst_n       (rst_n) ,    //
-    .led (led_breath )           //
+    .led (led )           //
 );
+assign led_breath = ad9122_finish ? led : 1'b0;
 wire test1 ;
 wire test2 ;
 wire test3 ;
