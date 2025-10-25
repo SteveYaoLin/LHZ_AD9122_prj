@@ -124,12 +124,12 @@ reg ad9516_upconf_pulse;
 wire ad9516_clk_ibuf;
 wire ad9122_dci;          // AD9122 DCI�ڲ��ź�
 // �Զ����ɵ��ڲ��ź�
-wire pwm_diff_port;        // PWM����ź��ڲ�����
+wire pwm_diff_port;        // PWM����ź��ڲ�����?
 wire ad9122_freme;         // AD9122֡ͬ���ڲ�����
 wire ad9122_fpga_clk;      // AD9122ʱ���ڲ�����
 reg [15:0] reset_cnt = 0;      // ��λ�������ڲ��ź�
 wire sys_rst_n ; // V5����û���ⲿ��λ�źţ�ֱ������
-wire ad9616_finish; // AD5616��������ź�
+wire ad9616_finish; // AD5616��������ź�?
 wire ad9516_lock; // AD9516�����ź�
 wire dac_500M_clk;
 wire dac_125M_clk;
@@ -175,12 +175,12 @@ assign rst_n = sys_rst_n & locked; // Active low reset signal
 //   .clk_in1_n(ad9122_fpga_clk_n)
 //   );
 // IBUFDS #(
-//     .DIFF_TERM("FALSE"),    // δʹ�ò���ն�
+//     .DIFF_TERM("FALSE"),    // δʹ�ò���ն�?
 //     .IBUF_LOW_PWR("TRUE")   // �͹���ģʽ
 // ) IBUFDS_ad9516_clk (
-//     .O(ad9516_clk_ibuf),    // �������
-//     .I(ad9516_clk_p),       // ���������
-//     .IB(ad9516_clk_n)       // ��ָ�����
+//     .O(ad9516_clk_ibuf),    // �������?
+//     .I(ad9516_clk_p),       // ���������?
+//     .IB(ad9516_clk_n)       // ��ָ�����?
 // );
 
 // ��������������OBUFDS��
@@ -190,11 +190,11 @@ OBUFDS OBUFDS_pwm_diff (
     .OB(pwm_diff_port_n)    // ��ָ����
 );
 
-OBUFDS OBUFDS_ad9122_dci (
-    .I(ad9122_dci),      // �ڲ������ź�
-    .O(ad9122_dci_p),    // ��������
-    .OB(ad9122_dci_n)    // ��ָ����
-);
+// OBUFDS OBUFDS_ad9122_dci (
+//     .I(ad9122_dci),      // �ڲ������ź�
+//     .O(ad9122_dci_p),    // ��������
+//     .OB(ad9122_dci_n)    // ��ָ����
+// );
 
 //OBUFDS OBUFDS_ad9122_freme (
 //    .I(ad9122_freme),       // �ڲ������ź�
@@ -204,25 +204,54 @@ OBUFDS OBUFDS_ad9122_dci (
 assign ad9122_freme_p = 1'b0;
 assign ad9122_freme_n = 1'b1;
 OBUFDS OBUFDS_ad9122_fpga_clk (
-    .I(clk_125M),    // �ڲ������ź�
+    .I(1'b0),    // �ڲ������ź�
     .O(ad9122_fpga_clk_p),  // ��������
     .OB(ad9122_fpga_clk_n)  // ��ָ����
 );
 
 
 
-// 16λ����������ߣ�OBUFDS��
-wire [15:0] AD9122_data;  // �ڲ���������
-genvar i;
-generate
-    for (i = 0; i < 16; i = i + 1) begin : AD9122_DATA_BUS
-        OBUFDS OBUFDS_ad9122_data (
-            .I(AD9122_data[i]),  // �ڲ���������
-            .O(AD9122_data_p[i]),    // ��������
-            .OB(AD9122_data_n[i])    // ��ָ����
-        );
+// // 16λ����������ߣ�OBUFDS��
+// wire [15:0] AD9122_data;  // �ڲ���������
+// genvar i;
+// generate
+//     for (i = 0; i < 16; i = i + 1) begin : AD9122_DATA_BUS
+//         OBUFDS OBUFDS_ad9122_data (
+//             .I(AD9122_data[i]),  // �ڲ���������
+//             .O(AD9122_data_p[i]),    // ��������
+//             .OB(AD9122_data_n[i])    // ��ָ����
+//         );
+//     end
+// endgenerate
+reg [15:0]dac1;
+wire [31:0] data_out_from_device;
+reg [2:0] cycle_cnt;
+ always @(posedge clk_500M or negedge rst_n) begin
+    if (!rst_n) begin
+      dac1 <= 16'h7FFF;
+      cycle_cnt <= 3'd0;
+    end else begin
+      if (cycle_cnt == 3'd4) begin
+        cycle_cnt <= 3'd0;
+        dac1 <= (dac1 == 16'h7FFF) ? 16'h8000 : 16'h7FFF;
+      end else begin
+        cycle_cnt <= cycle_cnt + 1;
+      end
     end
-endgenerate
+  end
+      // drive both upper and lower half with same dac1 value
+  assign  data_out_from_device = {dac1, dac1};
+  // Unit under test (keep parameters same as in design)
+  selectio_tx #(.SYS_W(16), .DEV_W(32)) u_selectio_tx (
+    .data_out_from_device(data_out_from_device),
+    .data_out_to_pins_p(AD9122_data_p),
+    .data_out_to_pins_n(AD9122_data_n),
+    .clk_to_pins_p(ad9122_dci_p),
+    .clk_to_pins_n(ad9122_dci_n),
+    .clk_in(clk_500M),
+    .clk_reset(!rst_n),
+    .io_reset(!rst_n)
+  );
 
 OBUF #(
    .DRIVE(12),       // ����������Ϊ12mA�����ݸ��ص�����
@@ -234,8 +263,8 @@ OBUF #(
    .I(pwm_out[_NUM_CHANNELS])      // ����ODDR����?????????????????
 );
 
-// assign ad9516_powerdown = pwm_out[5]; // ����AD9516���������ģʽ
-assign ad9516_powerdown = 1'b1; // ����AD9516���������ģʽ
+// assign ad9516_powerdown = pwm_out[5]; // ����AD9516���������ģ�?
+assign ad9516_powerdown = 1'b1; // ����AD9516���������ģ�?
 assign ad9748_cken = 1'b1; // ����AD9748ʱ��ʹ��
 
 wire upon_config;
@@ -358,7 +387,7 @@ uart_reg_mapper # (
    /*input [7:0] */  .rev_data9   (rev_data9   ) ,
    /*input [7:0] */  .rev_data10  (rev_data10  ) ,
 //    /*input [7:0] */  .rev_data11  (rev_data11  ) ,
-   /*input       */  .pack_done   (pack_done   ) ,     // ���ݰ�������ɱ�???????????
+   /*input       */  .pack_done   (pack_done   ) ,     // ���ݰ�������ɱ�????????????
    
    // PWMͨ���ӿ�
    /*output [7:0]  .hs_ctrl_sta   (hs_ctrl_sta  ), */
@@ -370,7 +399,7 @@ uart_reg_mapper # (
    /*output [7:0]  .hs_pwm_ch     (hs_pwm_ch    ), */
    /*output [7:0]  .ls_pwm_ch     (ls_pwm_ch    )  */          
    /*output wire [_DAC_WIDTH - 1:0 ]*/.dac_data (dac_data ),         
-   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_out  (pwm_out  ),    // PWM�������
+   /*output wire [_NUM_CHANNELS-1:0]*/.pwm_out  (pwm_out  ),    // PWM�������?
    /*output wire [_NUM_CHANNELS-1:0]*/.pwm_busy (pwm_busy ),   // æ״̬???��
    /*output wire [_NUM_CHANNELS-1:0]*/.pwm_valid(pwm_valid)   // ��Ч��־����
 );
@@ -457,7 +486,7 @@ ad9122_spi_wr_config ad9122_config(
 // ... �����ڲ��߼��ź�
 
 // ģ��ʵ�ʹ����߼����˴����û����䣩
-// ע�⣺���в�ֶ˿�����ͨ���ڲ������ź�����
+// ע�⣺���в�ֶ˿�����ͨ���ڲ������ź�����?
 // ���磺
 //   assign pwm_diff_port = ...;
 //   assign ad9122_freme = ...;
