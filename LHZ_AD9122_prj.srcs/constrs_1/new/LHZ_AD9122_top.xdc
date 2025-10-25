@@ -1,4 +1,3 @@
-set_property PACKAGE_PIN T20 [get_ports ad9122_freme_p]
 set_property PACKAGE_PIN N20 [get_ports ad9122_fpga_clk_p]
 
 
@@ -71,8 +70,8 @@ set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_dci_p]
 set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_dci_n]
 set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_fpga_clk_p]
 set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_fpga_clk_n]
-set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_freme_p]
-set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9122_freme_n]
+set_property IOSTANDARD LVCMOS18 [get_ports ad9122_freme_p]
+set_property IOSTANDARD LVCMOS18 [get_ports ad9122_freme_n]
 # set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9516_clk_p]
 # set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports ad9516_clk_n]
 #set_property IOSTANDARD LVCMOS33 [get_ports lt3471_enn]
@@ -120,6 +119,9 @@ set_property PACKAGE_PIN J16 [get_ports led_breath]
 set_property IOSTANDARD LVCMOS33 [get_ports led_breath]
 
 set_property PACKAGE_PIN H15 [get_ports pwm_slow_port]
+
+set_property PACKAGE_PIN T20 [get_ports ad9122_freme_p]
+set_property PACKAGE_PIN U20 [get_ports ad9122_freme_n]
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]

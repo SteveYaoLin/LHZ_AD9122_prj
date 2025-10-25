@@ -139,7 +139,9 @@ initial begin
     sys_rst_n = 1; // release reset
 
     // wait for DUT internal clock wizard lock (observed in real DUT)
-    #3000;
+    // #6000;
+    @(posedge uut.locked);  // 检测 locked 信号的上升沿
+    #100000;                // 再等待 500us
 
      #(BIT_PERIOD * 100);
      $display("[TB] Enable pwm5 slow pwm...");

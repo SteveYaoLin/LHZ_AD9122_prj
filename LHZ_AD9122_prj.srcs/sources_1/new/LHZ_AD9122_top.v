@@ -129,13 +129,13 @@ wire ad9122_freme;         // AD9122֡ͬ���ڲ�����
 wire ad9122_fpga_clk;      // AD9122ʱ���ڲ�����
 reg [15:0] reset_cnt = 0;      // ��λ�������ڲ��ź�
 wire sys_rst_n ; // V5����û���ⲿ��λ�źţ�ֱ������
-wire ad9516_finish; // AD5616��������ź�
+wire ad9616_finish; // AD5616��������ź�
 wire ad9516_lock; // AD9516�����ź�
 wire dac_500M_clk;
 wire dac_125M_clk;
 wire AD9122_sda_dir;
 //wire AD9122_sda_dir;
-// wire AD9122_sen_n;
+wire AD9122_sen_n;
 wire ad9122_finish;
 reg   ad9122_upconf_pulse;
 always @(posedge sys_clk ) begin
@@ -168,7 +168,7 @@ assign rst_n = sys_rst_n & locked; // Active low reset signal
 //   .clk_out1(dac_500M_clk),
 //   .clk_out2(dac_125M_clk),
 //   // Status and control signals               
-//   .resetn(rst_n&&ad9516_finish), 
+//   .resetn(rst_n&&ad9616_finish), 
 //   .locked(ad9516_lock),
 //  // Clock in ports
 //   .clk_in1_p(ad9122_fpga_clk_p),
@@ -196,12 +196,13 @@ OBUFDS OBUFDS_ad9122_dci (
     .OB(ad9122_dci_n)    // ��ָ����
 );
 
-OBUFDS OBUFDS_ad9122_freme (
-    .I(ad9122_freme),       // �ڲ������ź�
-    .O(ad9122_freme_p),     // ��������
-    .OB(ad9122_freme_n)     // ��ָ����
-);
-
+//OBUFDS OBUFDS_ad9122_freme (
+//    .I(ad9122_freme),       // �ڲ������ź�
+//    .O(ad9122_freme_p),     // ��������
+//    .OB(ad9122_freme_n)     // ��ָ����
+//);
+assign ad9122_freme_p = 1'b0;
+assign ad9122_freme_n = 1'b1;
 OBUFDS OBUFDS_ad9122_fpga_clk (
     .I(clk_125M),    // �ڲ������ź�
     .O(ad9122_fpga_clk_p),  // ��������
@@ -408,23 +409,22 @@ uart_protocol_tx #(
     .o_adk_rst(),
     //  .datain_valid(upon_config||ad9516_upconf_pulse),
    .datain_valid(upon_config),
-    .datain_ready(),
-    .ad9516_conf_finish(ad9516_finish)
+    .datain_ready(ad9616_finish)
   );
   // helpers for edge detect and pulse generation
-reg ad9616_finish_d1; // delayed version of ad9516_finish
+reg ad9616_finish_d1; // delayed version of ad9616_finish
 reg [1:0] ad9122_pulse_cnt; // remaining cycles for pulse (2..0)
-/*
-// Generate ad9122_upconf_pulse when ad9516_finish rises: pulse for exactly 2 clk_50M cycles
+
+// Generate ad9122_upconf_pulse when ad9616_finish rises: pulse for exactly 2 clk_50M cycles
 always @(posedge clk_50M or negedge rst_n) begin
     if (!rst_n) begin
         ad9616_finish_d1 <= 1'b0;
         ad9122_pulse_cnt <= 2'd0;
         ad9122_upconf_pulse <= 1'b0;
     end else begin
-        ad9616_finish_d1 <= ad9516_finish;
+        ad9616_finish_d1 <= ad9616_finish;
         // detect rising edge
-        if (ad9516_finish && !ad9616_finish_d1) begin
+        if (ad9616_finish && !ad9616_finish_d1) begin
             ad9122_pulse_cnt <= 2'd2; // start counter (2 cycles)
             ad9122_upconf_pulse <= 1'b1;
         end else if (ad9122_pulse_cnt != 2'd0) begin
@@ -436,7 +436,7 @@ always @(posedge clk_50M or negedge rst_n) begin
             ad9122_upconf_pulse <= 1'b0;
         end
     end
-end*/
+end
 // config ad9122
 ad9122_spi_wr_config ad9122_config(
     /*input  */.clk_in          (clk_50M),
@@ -447,8 +447,7 @@ ad9122_spi_wr_config ad9122_config(
     /*output */.o_sen_n         (ad9122_spi_csn),
     /*output */.o_reset         (),
     /*input  */.io_sda          (ad9122_spi_sdio),
-    // /*input  */.datain_valid    (ad9516_finish ),
-    /*input  */.datain_valid    (ad9516_upconf_pulse ),
+    /*input  */.datain_valid    (ad9516_upconf_pulse),
     /*output */.datain_ready    (ad9122_finish) 
                         ); 
 
@@ -463,13 +462,11 @@ ad9122_spi_wr_config ad9122_config(
 //   assign pwm_diff_port = ...;
 //   assign ad9122_freme = ...;
 //   assign ad9122_fpga_clk = ...;
-wire led;
 breath_led u_breath_led(
     .sys_clk         (clk_125M) ,      //
     .sys_rst_n       (rst_n) ,    //
-    .led (led )           //
+    .led (led_breath )           //
 );
-assign led_breath = ad9122_finish ? led : 1'b0;
 wire test1 ;
 wire test2 ;
 wire test3 ;
