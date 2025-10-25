@@ -18,8 +18,8 @@ localparam BIT_PERIOD = 1_000_000_000 / UART_BPS; // ns per UART bit
 reg sys_clk;
 reg sys_rst_n;
 reg led_breath;
-reg ad9516_clk_p;
-reg ad9516_clk_n;
+// reg ad9516_clk_p;
+// reg ad9516_clk_n;
 reg uart_rxd;
 wire [7:0] dac_data; // default _DAC_WIDTH = 8
 wire ad9748_sleep;
@@ -60,8 +60,8 @@ LHZ_AD9122_top #(
 ) uut (
     .sys_clk(sys_clk),
     // .sys_rst_n(sys_rst_n),
-    .ad9516_clk_p(ad9516_clk_p),
-    .ad9516_clk_n(ad9516_clk_n),
+    // .ad9516_clk_p(ad9516_clk_p),
+    // .ad9516_clk_n(ad9516_clk_n),
     .uart_rxd(uart_rxd),
     .dac_data(dac_data),
     .ad9748_sleep(ad9748_sleep),
@@ -114,14 +114,14 @@ initial sys_clk = 0;
 always #(SYS_CLK_PERIOD/2) sys_clk = ~sys_clk;
 
 // Generate differential ad9516 clock (p/n complementary)
-initial begin
-    ad9516_clk_p = 0;
-    ad9516_clk_n = 1;
-end
-always #(SYS_CLK_PERIOD/2) begin
-    ad9516_clk_p = ~ad9516_clk_p;
-    ad9516_clk_n = ~ad9516_clk_n;
-end
+// initial begin
+//     ad9516_clk_p = 0;
+//     ad9516_clk_n = 1;
+// end
+// always #(SYS_CLK_PERIOD/2) begin
+//     ad9516_clk_p = ~ad9516_clk_p;
+//     ad9516_clk_n = ~ad9516_clk_n;
+// end
 
 // Initial conditions
 initial begin
