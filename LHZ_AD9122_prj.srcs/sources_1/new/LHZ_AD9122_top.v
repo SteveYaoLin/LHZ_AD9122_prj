@@ -22,6 +22,7 @@
 module LHZ_AD9122_top
 # (
     parameter _HALF_NUM_CLK4PRID = 50,               //
+    parameter _HALF_NUM_AD9748 = 2,               //
     parameter _PAT_WIDTH = 32 ,   // 
     parameter _NUM_CHANNELS = 3,        // 
     parameter _NUM_SLOW_CH = 3, 
@@ -224,8 +225,29 @@ OBUFDS OBUFDS_ad9122_fpga_clk (
 //         );
 //     end
 // endgenerate
-reg [15:0]dac1;
+
+/*AD9748 DATA*/
+reg [7:0]AD9748_dac;
 wire [31:0] data_out_from_device;
+reg [15:0] AD9748_cycle_cnt;
+ always @(posedge clk_500M or negedge rst_n) begin
+    if (!rst_n) begin
+      AD9748_dac <= 8'h00;
+      AD9748_cycle_cnt <= 16'd0;
+    end else begin
+      if (AD9748_cycle_cnt == (_HALF_NUM_AD9748 - 1)) begin
+        AD9748_cycle_cnt <= 16'd0;
+        AD9748_dac <= (AD9748_dac == 8'hFF) ? 8'h00 : 8'hFF;
+      end else begin
+        AD9748_cycle_cnt <= AD9748_cycle_cnt + 1;
+      end
+    end
+  end
+  assign dac_data = AD9748_dac;
+
+/*AD9122 DATA*/
+reg [15:0]dac1;
+// wire [31:0] data_out_from_device;
 reg [15:0] cycle_cnt;
  always @(posedge clk_500M or negedge rst_n) begin
     if (!rst_n) begin
@@ -241,8 +263,8 @@ reg [15:0] cycle_cnt;
     end
   end
       // drive both upper and lower half with same dac1 value
-//   assign  data_out_from_device = {dac1, dac1};
-  assign  data_out_from_device = {16'h7FFF, 16'h7FFF};
+  assign  data_out_from_device = {dac1, dac1};
+//   assign  data_out_from_device = {16'h7FFF, 16'h7FFF};
   // Unit under test (keep parameters same as in design)
   selectio_tx #(.SYS_W(16), .DEV_W(32)) u_selectio_tx (
     .data_out_from_device(data_out_from_device),
@@ -400,7 +422,7 @@ uart_reg_mapper # (
    /*output [7:0]  .ls_ctrl_sta   (ls_ctrl_sta  ), */
    /*output [7:0]  .hs_pwm_ch     (hs_pwm_ch    ), */
    /*output [7:0]  .ls_pwm_ch     (ls_pwm_ch    )  */          
-   /*output wire [_DAC_WIDTH - 1:0 ]*/.dac_data (dac_data ),         
+   /*output wire [_DAC_WIDTH - 1:0 ]*/.dac_data ( ),         
    /*output wire [_NUM_CHANNELS-1:0]*/.pwm_out  (pwm_out  ),    // PWM�������?
    /*output wire [_NUM_CHANNELS-1:0]*/.pwm_busy (pwm_busy ),   // æ״̬???��
    /*output wire [_NUM_CHANNELS-1:0]*/.pwm_valid(pwm_valid)   // ��Ч��־����
