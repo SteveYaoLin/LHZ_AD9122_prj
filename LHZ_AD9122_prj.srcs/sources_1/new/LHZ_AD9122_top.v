@@ -241,8 +241,8 @@ reg [15:0] cycle_cnt;
     end
   end
       // drive both upper and lower half with same dac1 value
-  assign  data_out_from_device = {dac1, dac1};
-//   assign  data_out_from_device = {16'h7FFF, 16'h7FFF};
+//   assign  data_out_from_device = {dac1, dac1};
+  assign  data_out_from_device = {16'h7FFF, 16'h7FFF};
   // Unit under test (keep parameters same as in design)
   selectio_tx #(.SYS_W(16), .DEV_W(32)) u_selectio_tx (
     .data_out_from_device(data_out_from_device),
